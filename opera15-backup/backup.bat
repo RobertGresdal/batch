@@ -19,7 +19,7 @@ for %%X in (git.exe) do (set GITFOUND=%%~$PATH:X)
 IF NOT DEFINED GITFOUND (
 	ECHO.WARNING: git is not in path. Will not be able to commit changes. All files will be overwritten.
 	SET /p CONTINUE="Overwrite files? [Y/N]: " %=%
-	IF NOT CONTINUE==Y (
+	IF NOT %CONTINUE%==Y (
 		ECHO.EXIT: Batch aborted by user. User does not wish to overwrite files.
 		GOTO CLEANEXIT
 	)
@@ -28,14 +28,26 @@ IF NOT DEFINED GITFOUND (
 )
 
 REM  COPY FILES TO BACKUP FOLDER
+SETLOCAL ENABLEDELAYEDEXPANSION
 FOR %%f IN (Bookmarks;favorites.db;Preferences;session.db;stash.db) DO (
 	IF EXIST %%f (
 		IF NOT EXIST backup (
+			ECHO.Creating directory "backup"
 			mkdir backup
 		)
+		
+		ECHO.Copying %%f to backup/%%f
 		copy /Y %%f ./backup/%%f
+		
+		IF DEFINED SQLFOUND (
+			IF %SQLFOUND:~-3% == db (
+				ECHO.Dumping %%f ...
+				sqlite3 %%f -cmd .dump .quit > ./backup/%%f
+			)
+		)
 	)
 )
+ENDLOCAL
 
 REM  IF SQLITE EXIST, DUMP FILES
 
@@ -64,4 +76,5 @@ exit /b
 
 :CLEANEXIT
 set errorlevel=0
+pause
 exit /b
