@@ -1,4 +1,4 @@
 http://www.opera.com/download/get/?partner=www&opsys=Windows
 http://www.opera.com/download/get/?partner=www&amp;opsys=Windows&amp;product=Opera%20Next
-http://www.opera.com/download/get/?partner=www&amp;opsys=Windows&amp;product=Opera%20Developer
+http://www.opera.com/download/get/?id=36169&amp;location=360&amp;nothanks=yes&amp;sub=marine
 http://downloads.sourceforge.net/gnuwin32/wget-1.11.4-1-bin.zip
