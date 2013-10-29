@@ -1,25 +1,51 @@
 @echo off
 
+REM  
+:USER_VARIABLES
+SET INSTALL_PATH=C:\temp\
+
+
+REM 
+REM   PLEASE DO NOT CHANGE ANYTHING BELOW UNLESS YOU KNOW WHAT YOU ARE DOING
+REM 
+SET VERSION=stable
+	
 :SET_SCRIPT_OPTIONS
 FOR %%o in (%*) DO (
 	IF "/D" == "%%o" SET ALWAYS_DOWNLOAD=1
+	IF "/V=NEXT" == "%%o" SET VERSION=next
+	IF "/V=DEV" == "%%o" SET VERSION=development
+	IF "/V=DAILY" == "%%o" SET VERSION=daily
 )
 
-:INIT_VARIABLES
-SET INSTALL_PATH=C:\temp\Opera Development
-SET OUTPUTFILE=install_development.exe
-
-:SET_DOWNLOAD_URLS
+:LOAD_DOWNLOAD_URLS
 (
 	SET /p OPERA_STABLE=
 	SET /p OPERA_NEXT=
 	SET /p OPERA_DEVELOPMENT=
-)<download.txt
+	SET /p OPERA_DAILY=
+)<urls.txt
+
+:COMPUTED_VARIABLES
+IF VERSION==next (
+	SET OUTPUTFILE=install_next.exe
+	SET DOWNLOAD_URL=%OPERA_NEXT%
+) ELSE IF VERSION==development (
+	SET OUTPUTFILE=install_development.exe
+	SET DOWNLOAD_URL=%OPERA_DEVELOPMENT%
+) ELSE IF VERSION==daily(
+	SET OUTPUTFILE=install_daily.exe
+	SET DOWNLOAD_URL=%OPERA_DAILY%
+) ELSE (
+	SET OUTPUTFILE=install_stable.exe
+	SET DOWNLOAD_URL=%OPERA_STABLE%
+)
+
 
 :PREPARE_FOR_DOWNLOAD
 IF NOT EXIST downloads MKDIR downloads
 IF %ALWAYS_DOWNLOAD%==1 GOTO DOWNLOAD
-IF EXIST "downloads/install_development.exe" SET INSTALLFILE_EXIST=1
+IF EXIST "downloads/%OUTPUTFILE%" SET INSTALLFILE_EXIST=1
 
 :DOWNLOAD
 IF NOT %ALWAYS_DOWNLOAD%==1 (
@@ -29,7 +55,7 @@ IF NOT %ALWAYS_DOWNLOAD%==1 (
 	)
 )
 IF NOT %SKIP_DOWNLOAD%==1 (
-	powershell.exe "-Command (new-object System.Net.WebClient).DownloadFile("'%OPERA_DEVELOPMENT%'", "'%~dp0\downloads\install_development.exe'")"
+	powershell.exe "-Command (new-object System.Net.WebClient).DownloadFile("'%DOWNLOAD_URL%'", "'%~dp0\downloads\%OUTPUTFILE%'")"
 )
 
 
@@ -45,7 +71,6 @@ pushd downloads
 popd
 
 :INSTALL_BACKUP_SCRIPT
-IF NOT EXIST "%INSTALL_PATH%/profile" MKDIR "%INSTALL_PATH%/profile"
 IF NOT EXIST "%INSTALL_PATH%/profile/data" MKDIR "%INSTALL_PATH%/profile/data"
 copy /Y "backup.bat" "%INSTALL_PATH%/profile/data/backup.bat"
 
