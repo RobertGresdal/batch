@@ -3,57 +3,79 @@ REM  Backup script for Opera 15 and up
 
 REM  Get options
 SET OPTION=%1
-SET GITEXIST=
-
+SET SQLFOUND=
+SET GITFOUND=
 
 REM  INIT
 REM  ====
 REM  Check if sqlite3.exe exist in the path folders ( Nice solution by Joey! http://bit.ly/16CqIVQ )
-for %%X in (sqlite3.exe) do (set SQLFOUND=%%~$PATH:X)
-IF NOT DEFINED SQLFOUND (
-    ECHO.WARNING: sqlite3 is not in path. Will not be able to dump databases.
-) ELSE (
-	ECHO.Using %SQLFOUND%
+FOR %%X IN (sqlite3.exe) DO ( 
+	SET SQLFOUND=%%~$PATH:X 
 )
-for %%X in (git.exe) do (set GITFOUND=%%~$PATH:X)
+IF NOT DEFINED SQLFOUND (
+	ECHO.WARNING: sqlite3 is not in path. Will not be able to dump databases.
+) ELSE (
+	ECHO.Found "%SQLFOUND%"
+)
+
+REM  Check for git.cmd in the path
+FOR %%X IN (git.cmd) DO ( 
+	SET GITFOUND=%%~$PATH:X 
+)
 IF NOT DEFINED GITFOUND (
 	ECHO.WARNING: git is not in path. Will not be able to commit changes. All files will be overwritten.
 	SET /p CONTINUE="Overwrite files? [Y/N]: " %=%
-	IF NOT %CONTINUE%==Y (
+	IF NOT "Y" == "%CONTINUE%" (
 		ECHO.EXIT: Batch aborted by user. User does not wish to overwrite files.
 		GOTO CLEANEXIT
 	)
 ) ELSE (
-	ECHO.Using %GITFOUND%
+	ECHO.Found "%GITFOUND%"
+)
+
+IF NOT EXIST backup (
+	ECHO.Creating directory "backup"
+	MKDIR backup
+)
+rem  Create git repository
+IF NOT EXIST "backup/.git" (
+	IF DEFINED GITFOUND (
+		pushd backup
+		git init
+		IF NOT EXIST .gitignore echo /.gitignore> .gitignore
+		popd
+	)
 )
 
 REM  COPY FILES TO BACKUP FOLDER
 SETLOCAL ENABLEDELAYEDEXPANSION
+SET t = %SQLFOUND%
 FOR %%f IN (Bookmarks;favorites.db;Preferences;session.db;stash.db) DO (
-	IF EXIST %%f (
-		IF NOT EXIST backup (
-			ECHO.Creating directory "backup"
-			mkdir backup
-		)
+	IF EXIST "%%f" (
+		ECHO.Copying "%%f" to "./backup/%%f"
+		copy /Y "%%f" "./backup/%%f"
 		
-		ECHO.Copying %%f to backup/%%f
-		copy /Y %%f ./backup/%%f
-		
+		REM  IF SQLITE EXIST, DUMP FILES
 		IF DEFINED SQLFOUND (
-			IF %SQLFOUND:~-3% == db (
-				ECHO.Dumping %%f ...
-				sqlite3 %%f -cmd .dump .quit > ./backup/%%f
+			IF ".db" == "%%~xf" (
+				pushd backup
+				ECHO.Dumping "%%f" to "%%~nf.sql"...
+				sqlite3 "%%f" -cmd .dump .quit > "%%~nf.sql"
+				popd
 			)
 		)
 	)
 )
+REM  IF GIT EXIST, COMMIT CHANGES
+IF DEFINED GITFOUND (
+	pushd backup
+	git add .
+	git commit -m "Automatic backup"
+	popd
+)
 ENDLOCAL
 
-REM  IF SQLITE EXIST, DUMP FILES
-
-REM  IF GIT EXIST, COMMIT CHANGES
-
-IF NOT ERRORLEVEL 1 GOTO CLEANEXIT
+IF NOT ERRORLEVEL 1 (GOTO CLEANEXIT)
 
 
 
@@ -76,5 +98,4 @@ exit /b
 
 :CLEANEXIT
 set errorlevel=0
-pause
 exit /b
