@@ -67,7 +67,7 @@ rem popd
 
 :INSTALL_OPERA
 pushd downloads
-"%OUTPUTFILE%" /install /runimmediately /launchopera=0 /installfolder="%INSTALL_PATH%" /singleprofile=1 /copyonly=1
+"%OUTPUTFILE%" /install /runimmediately /launchopera=0 /installfolder="%INSTALL_PATH%/Opera Test (%VERSION%)" /singleprofile=1 /copyonly=1
 popd
 
 :INSTALL_BACKUP_SCRIPT
@@ -77,4 +77,4 @@ copy /Y "backup.bat" "%INSTALL_PATH%/profile/data/backup.bat"
 
 :EXIT
 SET ERRORLEVEL=0
-exit /b
+exit /b 0
