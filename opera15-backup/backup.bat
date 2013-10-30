@@ -1,4 +1,8 @@
 @echo off
+
+rem  ========================================
+rem  ============= BACKUP.BAT ===============
+rem  ========================================
 REM  Backup script for Opera 15 and up
 
 REM  Get options
@@ -98,4 +102,4 @@ exit /b
 
 :CLEANEXIT
 set errorlevel=0
-exit /b
+exit /b 0
