@@ -31,7 +31,7 @@ IF NOT DEFINED GITFOUND (
 	SET /p CONTINUE="Overwrite files? [Y/N]: " %=%
 	IF NOT "Y" == "%CONTINUE%" (
 		ECHO.EXIT: Batch aborted by user. User does not wish to overwrite files.
-		GOTO CLEANEXIT
+		GOTO EXIT
 	)
 ) ELSE (
 	ECHO.Found "%GITFOUND%"
@@ -79,27 +79,24 @@ IF DEFINED GITFOUND (
 )
 ENDLOCAL
 
-IF NOT ERRORLEVEL 1 (GOTO CLEANEXIT)
+IF NOT ERRORLEVEL 1 GOTO EXIT
 
 
 
 :DIRTYEXIT
-echo.
-echo. This exit should not happen, an uncatched exit exist in the script
-exit /b
+echo
+echo This exit should not happen, an uncatched exit exist in the script
+exit /b 900
 
 :FATALEXIT
-echo.
-echo.An error occured that prevents the script from finishing. Nothing was changed.
-echo.
-exit /b
+echo
+echo An error occured that prevents the script from finishing. Nothing was changed.
+exit /b 100
 
 :DESTRUCTIVEEXIT
-echo.
-echo.Oh no! An error occured while performing changes. The job was only partly finished.
-echo.
-exit /b
+echo
+echo Oh no! An error occured while performing changes. The job was only partly finished.
+exit /b 800
 
-:CLEANEXIT
-set errorlevel=0
+:EXIT
 exit /b 0

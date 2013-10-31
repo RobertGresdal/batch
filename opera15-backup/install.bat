@@ -1,5 +1,4 @@
 @echo off
-
 REM  
 :USER_VARIABLES
 SET INSTALL_PATH=C:\temp\
@@ -9,13 +8,25 @@ REM
 REM   PLEASE DO NOT CHANGE ANYTHING BELOW UNLESS YOU KNOW WHAT YOU ARE DOING
 REM 
 SET VERSION=stable
-	
+SET PROFILE=USB
+
 :SET_SCRIPT_OPTIONS
-FOR %%o in (%*) DO (
-	IF "/D" == "%%o" SET ALWAYS_DOWNLOAD=1
-	IF "/V=NEXT" == "%%o" SET VERSION=next
-	IF "/V=DEV" == "%%o" SET VERSION=development
-	IF "/V=DAILY" == "%%o" SET VERSION=daily
+IF "%1" == "/?" DO (	
+	echo install [[/D] [/V=NEXT|DEV] [/P=SINGLE|ALL]]
+	echo 	/D		Force download even if the file already exist
+	echo 	/V		Which version of Opera to download, accepted values are [NEXT,DEV,DAILY], default is STABLE
+	echo 	/P		Wether to install as USB standalone, for current user or all users
+	echo 
+) ELSE (
+	FOR %%o in (%*) DO (
+		IF "/D" == "%%o" SET ALWAYS_DOWNLOAD=1
+		IF "/V=NEXT" == "%%o" SET VERSION=next
+		IF "/V=DEV" == "%%o" SET VERSION=development
+		IF "/V=DAILY" == "%%o" SET VERSION=daily
+		rem /P
+		IF "/P=SINGLE" == "%%o" SET PROFILE=SINGLE
+		IF "/P=ALL" == "%%o" SET PROFILE=ALL
+	)
 )
 
 :LOAD_DOWNLOAD_URLS
@@ -66,15 +77,14 @@ rem wget -nc "%OPERA_STABLE%" --output-document=../downloads/install_stable.exe
 rem popd
 
 :INSTALL_OPERA
-pushd downloads
-"%OUTPUTFILE%" /install /runimmediately /launchopera=0 /installfolder="%INSTALL_PATH%/Opera Test (%VERSION%)" /singleprofile=1 /copyonly=1
-popd
+PUSHD downloads
+"%OUTPUTFILE%" /install /runimmediately /launchopera=1 /installfolder="%INSTALL_PATH%/Opera Test (%VERSION%)" /singleprofile=1 /copyonly=1
+POPD
 
 :INSTALL_BACKUP_SCRIPT
 IF NOT EXIST "%INSTALL_PATH%/profile/data" MKDIR "%INSTALL_PATH%/profile/data"
-copy /Y "backup.bat" "%INSTALL_PATH%/profile/data/backup.bat"
+COPY /Y "backup.bat" "%INSTALL_PATH%/profile/data/backup.bat"
 
 
 :EXIT
-SET ERRORLEVEL=0
-exit /b 0
+EXIT /b 0
