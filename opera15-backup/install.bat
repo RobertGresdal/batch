@@ -8,7 +8,7 @@ REM
 REM   PLEASE DO NOT CHANGE ANYTHING BELOW UNLESS YOU KNOW WHAT YOU ARE DOING
 REM 
 SET VERSION=stable
-SET PROFILE=USB
+SET PROFILE_PARAMS=/singleprofile=1 /copyonly=1
 
 :SET_SCRIPT_OPTIONS
 IF "%1" == "/?" DO (	
@@ -16,6 +16,7 @@ IF "%1" == "/?" DO (
 	echo 	/D		Force download even if the file already exist
 	echo 	/V		Which version of Opera to download, accepted values are [NEXT,DEV,DAILY], default is STABLE
 	echo 	/P		Wether to install as USB standalone, for current user or all users
+	echo	/S		Silent install, meaning no GUI during install, only std output.
 	echo 
 ) ELSE (
 	FOR %%o in (%*) DO (
@@ -23,9 +24,10 @@ IF "%1" == "/?" DO (
 		IF "/V=NEXT" == "%%o" SET VERSION=next
 		IF "/V=DEV" == "%%o" SET VERSION=development
 		IF "/V=DAILY" == "%%o" SET VERSION=daily
-		rem /P
-		IF "/P=SINGLE" == "%%o" SET PROFILE=SINGLE
-		IF "/P=ALL" == "%%o" SET PROFILE=ALL
+		rem Profile settings
+		IF "/P=SINGLE" == "%%o" SET PROFILE_PARAMS=/singleprofile=1
+		IF "/P=ALL" == "%%o" SET PROFILE_PARAMS=/singleprofile=0
+		IF "/S" == "%%o" SET SILENT=/silent
 	)
 )
 
@@ -78,7 +80,7 @@ rem popd
 
 :INSTALL_OPERA
 PUSHD downloads
-"%OUTPUTFILE%" /install /runimmediately /launchopera=1 /installfolder="%INSTALL_PATH%/Opera Test (%VERSION%)" /singleprofile=1 /copyonly=1
+"%OUTPUTFILE%" /install %SILENT% /runimmediately /launchopera=1 /installfolder="%INSTALL_PATH%/Opera Test (%VERSION%)" %PROFILE_PARAMS%
 POPD
 
 :INSTALL_BACKUP_SCRIPT
